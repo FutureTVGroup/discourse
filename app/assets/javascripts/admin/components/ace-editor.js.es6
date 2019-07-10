@@ -17,8 +17,9 @@ export default Ember.Component.extend({
 
   @observes("content")
   contentChanged() {
+    const content = this.content || "";
     if (this._editor && !this._skipContentChangeEvent) {
-      this._editor.getSession().setValue(this.content);
+      this._editor.getSession().setValue(content);
     }
   },
 

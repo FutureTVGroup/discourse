@@ -267,6 +267,7 @@ RSpec.describe InlineUploads do
         #{Discourse.base_url}#{upload3.url} #{Discourse.base_url}#{upload3.url}
 
         <img src="#{upload.url}" width="5" height="4">
+        <img src="#{upload.url}" width="5px" height="auto">
         MD
 
         expect(InlineUploads.process(md)).to eq(<<~MD)
@@ -283,6 +284,7 @@ RSpec.describe InlineUploads do
         #{Discourse.base_url}#{upload3.short_path} #{Discourse.base_url}#{upload3.short_path}
 
         ![|5x4](#{upload.short_url})
+        ![](#{upload.short_url})
         MD
       end
 
@@ -301,6 +303,34 @@ RSpec.describe InlineUploads do
 
         ![image|690x290](#{upload.short_url})
         MD
+      end
+
+      it "should correctly update images sources within anchor tags with indentation" do
+        md = <<~MD
+        <h1></h1>
+                        <a href="http://somelink.com">
+                          <img src="#{upload2.url}" alt="test" width="500" height="500">
+                        </a>
+
+                        <a href="http://somelink.com">
+                          <img src="#{upload2.url}" alt="test" width="500" height="500">
+                        </a>
+        MD
+
+        expect(InlineUploads.process(md)).to eq(<<~MD)
+        <h1></h1>
+                        <a href="http://somelink.com">
+                          <img src="#{upload2.short_path}" alt="test" width="500" height="500">
+                        </a>
+
+                        <a href="http://somelink.com">
+                          <img src="#{upload2.url}" alt="test" width="500" height="500">
+                        </a>
+        MD
+
+        md = "<h1></h1>\r\n<a href=\"http://somelink.com\">\r\n        <img src=\"#{upload.url}\" alt=\"test\" width=\"500\" height=\"500\">\r\n</a>"
+
+        expect(InlineUploads.process(md)).to eq("<h1></h1>\r\n<a href=\"http://somelink.com\">\r\n        <img src=\"#{upload.short_path}\" alt=\"test\" width=\"500\" height=\"500\">\r\n</a>")
       end
 
       it "should correctly update image sources within anchor or paragraph tags" do
